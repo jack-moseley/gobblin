@@ -12,6 +12,9 @@
 
 package gobblin.compaction.mapreduce.avro;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import gobblin.converter.filter.AvroSchemaFieldRemover;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -75,7 +78,9 @@ public class MRCompactorAvroKeyDedupJobRunner extends MRCompactorJobRunner {
    * Properties related to the avro dedup compaction job of a dataset.
    */
   private static final String COMPACTION_JOB_AVRO_KEY_SCHEMA_LOC = COMPACTION_JOB_PREFIX + "avro.key.schema.loc";
-  private static final String COMPACTION_JOB_DEDUP_KEY = COMPACTION_JOB_PREFIX + "dedup.key";
+  public static final String COMPACTION_JOB_DEDUP_KEY = COMPACTION_JOB_PREFIX + "dedup.key";
+
+  public static final String COMPACTION_JOB_KEY_SCHEMA_FIELDS = COMPACTION_JOB_PREFIX + "key.schema.fields";
 
   private static final String AVRO = "avro";
   private static final String SCHEMA_DEDUP_FIELD_ANNOTATOR = "primarykey";
@@ -88,6 +93,9 @@ public class MRCompactorAvroKeyDedupJobRunner extends MRCompactorJobRunner {
     // Use fields in the topic schema whose docs match "(?i).*primarykey".
     // If there's no such field, option ALL will be used.
     KEY,
+
+    // Use fields specified through property "key.schema.fields"
+    FIELDS,
 
     // Provide a custom dedup schema through property "avro.key.schema.loc"
     CUSTOM
@@ -135,6 +143,8 @@ public class MRCompactorAvroKeyDedupJobRunner extends MRCompactorJobRunner {
     } else if (dedupKeyOption == DedupKeyOption.KEY) {
       LOG.info("Using key attributes in the schema for compaction");
       keySchema = AvroUtils.removeUncomparableFields(getKeySchema(topicSchema)).get();
+    } else if (dedupKeyOption == DedupKeyOption.FIELDS && keySchemaFieldsSpecified()) {
+      keySchema = AvroUtils.removeUncomparableFields(getKeySchemaFromFields(topicSchema)).get();
     } else if (keySchemaFileSpecified()) {
       Path keySchemaFile = getKeySchemaFile();
       LOG.info("Using attributes specified in schema file " + keySchemaFile + " for compaction");
@@ -267,6 +277,58 @@ public class MRCompactorAvroKeyDedupJobRunner extends MRCompactorJobRunner {
   private Path getKeySchemaFile() {
     return new Path(this.dataset.jobProps().getProp(COMPACTION_JOB_AVRO_KEY_SCHEMA_LOC));
   }
+
+  private boolean keySchemaFieldsSpecified() {
+    return this.dataset.jobProps().contains(COMPACTION_JOB_KEY_SCHEMA_FIELDS);
+  }
+
+  // Doesn't work for nested schemas
+  private Schema getKeySchemaFromFields(Schema topicSchema) {
+    Schema newRecord = Schema.createRecord(topicSchema.getName(), topicSchema.getDoc(), topicSchema.getNamespace(),
+        topicSchema.isError());
+    List<Field> newFields = Lists.newArrayList();
+    List<String> fieldsToRetain = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(this.dataset.jobProps().getProp(COMPACTION_JOB_KEY_SCHEMA_FIELDS));
+    for (String fieldName : fieldsToRetain) {
+      newFields.add(topicSchema.getField(fieldName));
+    }
+    newRecord.setFields(newFields);
+    return newRecord;
+  }
+
+  // Recursively find and save fields
+  /*private Schema getKeySchemaFromFields(Schema schema, List<String> fieldsToRetain) {
+    if (fieldsToRetain.isEmpty()) {
+      return schema;
+    }
+    Schema newSchema = Schema.createRecord(schema.getName(), schema.getDoc(), schema.getNamespace(), schema.isError());
+    List<Field> newFields = Lists.newArrayList();
+    for (String fieldName : fieldsToRetain) {
+      String parent = fieldName.split("\\.", 2)[0];
+      Field oldField = schema.getField(parent);
+
+      // Find which children of this field should be retained
+      if (fieldName.contains(".")) {
+        List<String> newFieldsToRetain = Lists.newArrayList();
+        for (String fieldName2 : fieldsToRetain) {
+          if (fieldName2.contains(".")) {
+            String parent2 = fieldName2.split("\\.", 2)[0];
+            String child = fieldName2.split("\\.", 2)[1];
+            if (parent2.equals(parent)) {
+              newFieldsToRetain.add(child);
+            }
+          }
+        }
+        Field newField =
+            new Field(oldField.name(), getKeySchemaFromFields(oldField.schema(), newFieldsToRetain), oldField.doc(), null);
+        newFields.add(newField);
+      } else {
+        Field newField = new Field(oldField.name(), oldField.schema(), oldField.doc(), null);
+        newFields.add(newField);
+      }
+    }
+    newSchema.setFields(newFields);
+    return newSchema;
+  }*/
 
   @Override
   protected void setInputFormatClass(Job job) {

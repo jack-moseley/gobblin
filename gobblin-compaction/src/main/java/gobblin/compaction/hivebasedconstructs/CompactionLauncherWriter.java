@@ -1,5 +1,6 @@
 package gobblin.compaction.hivebasedconstructs;
 
+import gobblin.compaction.mapreduce.avro.MRCompactorAvroKeyDedupJobRunner;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +31,14 @@ public class CompactionLauncherWriter implements DataWriter<MRCompactionEntity> 
 
     Properties props = new Properties();
     props.putAll(compactionEntity.getProps());
+
+    props.setProperty(MRCompactorAvroKeyDedupJobRunner.COMPACTION_JOB_DEDUP_KEY, "fields");
+    props.setProperty(MRCompactorAvroKeyDedupJobRunner.COMPACTION_JOB_KEY_SCHEMA_FIELDS,
+        Joiner.on(',').join(compactionEntity.getPrimaryKeyList()));
+
     props.setProperty(ConfBasedDeltaFieldProvider.DELTA_FIELDS_KEY,
         Joiner.on(',').join(compactionEntity.getDeltaList()));
+
     props.setProperty(MRCompactor.COMPACTION_INPUT_DIR, compactionEntity.getDataFilesPath().toString());
 
     String dbTableName = compactionEntity.getDataFilesPath().getName();
