@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 package org.apache.gobblin.service;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -85,7 +86,7 @@ public class FlowConfigV2ResourceLocalHandler extends FlowConfigResourceLocalHan
   }
 
   @Override
-  public UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfigPatch) throws FlowConfigLoggedException {
+  public UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfigPatch, List<ServiceRequester> requesterList) throws FlowConfigLoggedException {
     throw new UnsupportedOperationException("Partial update only supported by GobblinServiceFlowConfigResourceHandler");
   }
 }

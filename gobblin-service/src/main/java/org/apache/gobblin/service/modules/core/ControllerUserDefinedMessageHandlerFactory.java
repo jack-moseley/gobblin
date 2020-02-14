@@ -121,7 +121,7 @@ class ControllerUserDefinedMessageHandlerFactory implements MessageHandlerFactor
      * {@link org.apache.gobblin.runtime.api.SpecCatalogListener#onUpdateSpec(Spec)} part.
      * Otherwise, we have to handle both FlowCatalog I/O and {@link org.apache.gobblin.runtime.api.SpecCatalogListener#onUpdateSpec(Spec)}.
      *
-     * Please refer to {@link FlowConfigResourceLocalHandler#updateFlowConfig(FlowId, FlowConfig)}. It will handle both FlowCatalog I/O and
+     * Please refer to {@link FlowConfigResourceLocalHandler#updateFlowConfig(FlowId, FlowConfig, List)}. It will handle both FlowCatalog I/O and
      * {@link org.apache.gobblin.runtime.api.SpecCatalogListener#onUpdateSpec(Spec)} in non-balance mode.
      */
     private void handleUpdate(String msg)
@@ -133,7 +133,7 @@ class ControllerUserDefinedMessageHandlerFactory implements MessageHandlerFactor
         log.info("Only handle update {} scheduling because flow catalog is committed locally on standby.", flowSpec);
         jobScheduler.onUpdateSpec(flowSpec);
       } else {
-        resourceHandler.updateFlowConfig(config.getId(), config);
+        resourceHandler.updateFlowConfig(config.getId(), config, null);
       }
     }
 
@@ -143,7 +143,7 @@ class ControllerUserDefinedMessageHandlerFactory implements MessageHandlerFactor
      * {@link org.apache.gobblin.runtime.api.SpecCatalogListener#onDeleteSpec(URI, String, Properties)} part.
      * Otherwise, we have to handle both FlowCatalog I/O and {@link org.apache.gobblin.runtime.api.SpecCatalogListener#onDeleteSpec(URI, String, Properties)}.
      *
-     * Please refer to {@link FlowConfigResourceLocalHandler#deleteFlowConfig(FlowId, Properties)}. It will handle both FlowCatalog I/O and
+     * Please refer to {@link FlowConfigResourceLocalHandler#deleteFlowConfig(FlowId, Properties, List)}. It will handle both FlowCatalog I/O and
      * {@link org.apache.gobblin.runtime.api.SpecCatalogListener#onDeleteSpec(URI, String, Properties)} in non-balance mode.
      */
     private void handleDelete(String msg)
@@ -156,7 +156,7 @@ class ControllerUserDefinedMessageHandlerFactory implements MessageHandlerFactor
           log.info("Only handle update {} scheduling because flow catalog is committed locally on standby.", flowUri);
           jobScheduler.onDeleteSpec(flowUri, FlowSpec.Builder.DEFAULT_VERSION);
         } else {
-          resourceHandler.deleteFlowConfig(id, new Properties());
+          resourceHandler.deleteFlowConfig(id, new Properties(), null);
         }
       } catch (URISyntaxException e) {
         throw new IOException(e);

@@ -118,7 +118,7 @@ public class FlowConfigsV2Resource extends ComplexKeyResourceTemplate<FlowId, Fl
     String flowGroup = key.getKey().getFlowGroup();
     String flowName = key.getKey().getFlowName();
     FlowId flowId = new FlowId().setFlowGroup(flowGroup).setFlowName(flowName);
-    return this.getFlowConfigResourceHandler().updateFlowConfig(flowId, flowConfig);
+    return this.getFlowConfigResourceHandler().updateFlowConfig(flowId, flowConfig, this.requesterService.findRequesters(this));
   }
 
   /**
@@ -132,7 +132,7 @@ public class FlowConfigsV2Resource extends ComplexKeyResourceTemplate<FlowId, Fl
     String flowGroup = key.getKey().getFlowGroup();
     String flowName = key.getKey().getFlowName();
     FlowId flowId = new FlowId().setFlowGroup(flowGroup).setFlowName(flowName);
-    return this.getFlowConfigResourceHandler().partialUpdateFlowConfig(flowId, flowConfigPatch);
+    return this.getFlowConfigResourceHandler().partialUpdateFlowConfig(flowId, flowConfigPatch, this.requesterService.findRequesters(this));
   }
 
   /**
@@ -145,7 +145,7 @@ public class FlowConfigsV2Resource extends ComplexKeyResourceTemplate<FlowId, Fl
     String flowGroup = key.getKey().getFlowGroup();
     String flowName = key.getKey().getFlowName();
     FlowId flowId = new FlowId().setFlowGroup(flowGroup).setFlowName(flowName);
-    return this.getFlowConfigResourceHandler().deleteFlowConfig(flowId, getHeaders());
+    return this.getFlowConfigResourceHandler().deleteFlowConfig(flowId, getHeaders(), this.requesterService.findRequesters(this));
   }
 
   private FlowConfigsResourceHandler getFlowConfigResourceHandler() {

@@ -18,6 +18,7 @@
 package org.apache.gobblin.service.modules.restli;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -44,6 +45,7 @@ import org.apache.gobblin.service.FlowConfigResourceLocalHandler;
 import org.apache.gobblin.service.FlowConfigsResourceHandler;
 import org.apache.gobblin.service.FlowId;
 import org.apache.gobblin.service.ServiceConfigKeys;
+import org.apache.gobblin.service.ServiceRequester;
 import org.apache.gobblin.service.modules.scheduler.GobblinServiceJobScheduler;
 import org.apache.gobblin.service.modules.utils.HelixUtils;
 
@@ -132,9 +134,9 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
 
   /**
    * Updating {@link FlowConfig} should check if current node is active (master).
-   * If current node is active, call {@link FlowConfigResourceLocalHandler#updateFlowConfig(FlowId, FlowConfig)} directly.
+   * If current node is active, call {@link FlowConfigResourceLocalHandler#updateFlowConfig(FlowId, FlowConfig, List)} directly.
    * If current node is standby, forward {@link ServiceConfigKeys#HELIX_FLOWSPEC_UPDATE} to active. The remote active will
-   * then call {@link FlowConfigResourceLocalHandler#updateFlowConfig(FlowId, FlowConfig)}.
+   * then call {@link FlowConfigResourceLocalHandler#updateFlowConfig(FlowId, FlowConfig, List)}.
    *
    * Please refer to {@link org.apache.gobblin.service.modules.core.ControllerUserDefinedMessageHandlerFactory} for remote handling.
    *
@@ -143,7 +145,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
    * forwarded to active node (if current node is standby) for execution.
    */
   @Override
-  public UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig)
+  public UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig, List<ServiceRequester> requesterList)
       throws FlowConfigLoggedException {
     String flowName = flowId.getFlowName();
     String flowGroup = flowId.getFlowGroup();
@@ -160,7 +162,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
 
         if (this.flowCatalogLocalCommit) {
           // We will handle FS I/O locally for load balance before forwarding to remote node.
-          this.localHandler.updateFlowConfig(flowId, flowConfig, false);
+          this.localHandler.updateFlowConfig(flowId, flowConfig, requesterList, false);
         }
 
         forwardMessage(ServiceConfigKeys.HELIX_FLOWSPEC_UPDATE, FlowConfigUtils.serializeFlowConfig(flowConfig), flowName, flowGroup);
@@ -169,7 +171,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
         log.info("Forwarding update flowConfig [flowName=" + flowName + " flowGroup=" + flowGroup + "]");
         return new UpdateResponse(HttpStatus.S_200_OK);
       } else {
-        return this.localHandler.updateFlowConfig(flowId, flowConfig);
+        return this.localHandler.updateFlowConfig(flowId, flowConfig, requesterList);
       }
 
     } catch (IOException e) {
@@ -179,7 +181,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
   }
 
   @Override
-  public UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfigPatch) {
+  public UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfigPatch, List<ServiceRequester> requesterList) {
     FlowConfig flowConfig = getFlowConfig(flowId);
 
     try {
@@ -188,14 +190,14 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
       throw new FlowConfigLoggedException(HttpStatus.S_400_BAD_REQUEST, "Failed to apply partial update", e);
     }
 
-    return updateFlowConfig(flowId, flowConfig);
+    return updateFlowConfig(flowId, flowConfig, requesterList);
   }
 
   /**
    * Deleting {@link FlowConfig} should check if current node is active (master).
-   * If current node is active, call {@link FlowConfigResourceLocalHandler#deleteFlowConfig(FlowId, Properties)} directly.
+   * If current node is active, call {@link FlowConfigResourceLocalHandler#deleteFlowConfig(FlowId, Properties, List)} directly.
    * If current node is standby, forward {@link ServiceConfigKeys#HELIX_FLOWSPEC_REMOVE} to active. The remote active will
-   * then call {@link FlowConfigResourceLocalHandler#deleteFlowConfig(FlowId, Properties)}.
+   * then call {@link FlowConfigResourceLocalHandler#deleteFlowConfig(FlowId, Properties, List)}.
    *
    * Please refer to {@link org.apache.gobblin.service.modules.core.ControllerUserDefinedMessageHandlerFactory} for remote handling.
    *
@@ -204,7 +206,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
    * forwarded to active node (if current node is standby) for execution.
    */
   @Override
-  public UpdateResponse deleteFlowConfig(FlowId flowId, Properties header)
+  public UpdateResponse deleteFlowConfig(FlowId flowId, Properties header, List<ServiceRequester> requesterList)
       throws FlowConfigLoggedException {
     String flowName = flowId.getFlowName();
     String flowGroup = flowId.getFlowGroup();
@@ -216,14 +218,14 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
 
         if (this.flowCatalogLocalCommit) {
           // We will handle FS I/O locally for load balance before forwarding to remote node.
-          this.localHandler.deleteFlowConfig(flowId, header, false);
+          this.localHandler.deleteFlowConfig(flowId, header, requesterList, false);
         }
 
         forwardMessage(ServiceConfigKeys.HELIX_FLOWSPEC_REMOVE, FlowConfigUtils.serializeFlowId(flowId), flowName, flowGroup);
 
         return new UpdateResponse(HttpStatus.S_200_OK);
       } else {
-        return this.localHandler.deleteFlowConfig(flowId, header);
+        return this.localHandler.deleteFlowConfig(flowId, header, requesterList);
       }
     } catch (IOException e) {
       throw new FlowConfigLoggedException(HttpStatus.S_500_INTERNAL_SERVER_ERROR,

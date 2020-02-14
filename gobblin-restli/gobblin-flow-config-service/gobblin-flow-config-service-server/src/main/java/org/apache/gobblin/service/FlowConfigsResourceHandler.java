@@ -17,6 +17,7 @@
 
 package org.apache.gobblin.service;
 
+import java.util.List;
 import java.util.Properties;
 
 import com.linkedin.restli.common.PatchRequest;
@@ -38,16 +39,16 @@ public interface FlowConfigsResourceHandler {
   /**
    * Update {@link FlowConfig}
    */
-  UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig) throws FlowConfigLoggedException;
+  UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig, List<ServiceRequester> requesterList) throws FlowConfigLoggedException;
 
   /**
    * Partial update a {@link FlowConfig}
    */
-  UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfig) throws FlowConfigLoggedException;
+  UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfig, List<ServiceRequester> requesterList) throws FlowConfigLoggedException;
 
   /**
    * Delete {@link FlowConfig}
    */
-  UpdateResponse deleteFlowConfig(FlowId flowId, Properties header) throws FlowConfigLoggedException;
+  UpdateResponse deleteFlowConfig(FlowId flowId, Properties header, List<ServiceRequester> requesterList) throws FlowConfigLoggedException;
 
 }

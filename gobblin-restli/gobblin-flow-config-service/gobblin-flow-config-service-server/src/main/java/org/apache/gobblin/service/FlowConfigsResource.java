@@ -33,7 +33,6 @@ import javax.inject.Named;
 import com.linkedin.restli.common.ComplexResourceKey;
 import com.linkedin.restli.common.EmptyRecord;
 import com.linkedin.restli.common.HttpStatus;
-import com.linkedin.restli.common.PatchRequest;
 import com.linkedin.restli.server.CreateResponse;
 import com.linkedin.restli.server.UpdateResponse;
 import com.linkedin.restli.server.annotations.RestLiCollection;
@@ -114,7 +113,7 @@ public class FlowConfigsResource extends ComplexKeyResourceTemplate<FlowId, Empt
     String flowGroup = key.getKey().getFlowGroup();
     String flowName = key.getKey().getFlowName();
     FlowId flowId = new FlowId().setFlowGroup(flowGroup).setFlowName(flowName);
-    return this.flowConfigsResourceHandler.updateFlowConfig(flowId, flowConfig);
+    return this.flowConfigsResourceHandler.updateFlowConfig(flowId, flowConfig, this.requesterService.findRequesters(this));
   }
 
   /**
@@ -127,7 +126,7 @@ public class FlowConfigsResource extends ComplexKeyResourceTemplate<FlowId, Empt
     String flowGroup = key.getKey().getFlowGroup();
     String flowName = key.getKey().getFlowName();
     FlowId flowId = new FlowId().setFlowGroup(flowGroup).setFlowName(flowName);
-    return this.flowConfigsResourceHandler.deleteFlowConfig(flowId, getHeaders());
+    return this.flowConfigsResourceHandler.deleteFlowConfig(flowId, getHeaders(), this.requesterService.findRequesters(this));
   }
 
   private Properties getHeaders() {

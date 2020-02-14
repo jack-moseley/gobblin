@@ -17,8 +17,10 @@
 
 package org.apache.gobblin.service;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
@@ -159,13 +161,16 @@ public class FlowConfigResourceLocalHandler implements FlowConfigsResourceHandle
   /**
    * Update flowConfig locally and trigger all listeners iff @param triggerListener is set to true
    */
-  public UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig, boolean triggerListener) {
+  public UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig, List<ServiceRequester> requesterList, boolean triggerListener) {
     log.info("[GAAS-REST] Update called with flowGroup {} flowName {}", flowId.getFlowGroup(), flowId.getFlowName());
 
     if (!flowId.getFlowGroup().equals(flowConfig.getId().getFlowGroup()) || !flowId.getFlowName().equals(flowConfig.getId().getFlowName())) {
       throw new FlowConfigLoggedException(HttpStatus.S_400_BAD_REQUEST,
           "flowName and flowGroup cannot be changed in update", null);
     }
+
+    checkRequester(flowId, requesterList);
+
     if (isUnscheduleRequest(flowConfig)) {
       // flow config is not changed if it is just a request to un-schedule
       FlowConfig originalFlowConfig = getFlowConfig(flowId);
@@ -184,21 +189,24 @@ public class FlowConfigResourceLocalHandler implements FlowConfigsResourceHandle
   /**
    * Update flowConfig locally and trigger all listeners
    */
-  public UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig) throws FlowConfigLoggedException {
-    return updateFlowConfig(flowId, flowConfig, true);
+  public UpdateResponse updateFlowConfig(FlowId flowId, FlowConfig flowConfig, List<ServiceRequester> requesterList) throws FlowConfigLoggedException {
+    return updateFlowConfig(flowId, flowConfig, requesterList, true);
   }
 
   @Override
-  public UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfigPatch) throws FlowConfigLoggedException {
+  public UpdateResponse partialUpdateFlowConfig(FlowId flowId, PatchRequest<FlowConfig> flowConfigPatch, List<ServiceRequester> requesterList) throws FlowConfigLoggedException {
     throw new UnsupportedOperationException("Partial update only supported by GobblinServiceFlowConfigResourceHandler");
   }
 
   /**
    * Delete flowConfig locally and trigger all listeners iff @param triggerListener is set to true
    */
-  public UpdateResponse deleteFlowConfig(FlowId flowId, Properties header, boolean triggerListener) throws FlowConfigLoggedException {
+  public UpdateResponse deleteFlowConfig(FlowId flowId, Properties header, List<ServiceRequester> requesterList, boolean triggerListener) throws FlowConfigLoggedException {
 
     log.info("[GAAS-REST] Delete called with flowGroup {} flowName {}", flowId.getFlowGroup(), flowId.getFlowName());
+
+    checkRequester(flowId, requesterList);
+
     this.deleteFlow.mark();
     URI flowUri = null;
 
@@ -214,8 +222,8 @@ public class FlowConfigResourceLocalHandler implements FlowConfigsResourceHandle
   /**
    * Delete flowConfig locally and trigger all listeners
    */
-  public UpdateResponse deleteFlowConfig(FlowId flowId, Properties header)  throws FlowConfigLoggedException {
-    return deleteFlowConfig(flowId, header, true);
+  public UpdateResponse deleteFlowConfig(FlowId flowId, Properties header, List<ServiceRequester> requesterList)  throws FlowConfigLoggedException {
+    return deleteFlowConfig(flowId, header, requesterList, true);
   }
 
   /**
@@ -276,6 +284,32 @@ public class FlowConfigResourceLocalHandler implements FlowConfigsResourceHandle
       return FlowSpec.builder().withConfig(configWithFallback).withTemplate(templateURI).build();
     } catch (URISyntaxException e) {
       throw new FlowConfigLoggedException(HttpStatus.S_400_BAD_REQUEST, "bad URI " + flowConfig.getTemplateUris(), e);
+    }
+  }
+
+  /**
+   * Check that all {@link ServiceRequester}s in this request are contained within the original service requester list
+   * when the flow was submitted and throw a {@link FlowConfigLoggedException} if they are not.
+   *
+   * @param flowId FlowID to look up original requesters
+   * @param requesterList list of requesters for this request
+   */
+  private void checkRequester(FlowId flowId, List<ServiceRequester> requesterList) {
+    if (requesterList == null) {
+      return;
+    }
+
+    FlowConfig originalFlowConfig = getFlowConfig(flowId);
+    try {
+      String serializedOriginalRequesterList = originalFlowConfig.getProperties().get(RequesterService.REQUESTER_LIST);
+      if (serializedOriginalRequesterList != null) {
+        List<ServiceRequester> originalRequesterList = RequesterService.deserialize(serializedOriginalRequesterList);
+        if (!originalRequesterList.isEmpty() && (requesterList.isEmpty() || !originalRequesterList.containsAll(requesterList))) {
+          throw new FlowConfigLoggedException(HttpStatus.S_401_UNAUTHORIZED, "Requester not in original requester list");
+        }
+      }
+    } catch (IOException e) {
+      throw new FlowConfigLoggedException(HttpStatus.S_400_BAD_REQUEST, "Failed to get original requester list", e);
     }
   }
 
