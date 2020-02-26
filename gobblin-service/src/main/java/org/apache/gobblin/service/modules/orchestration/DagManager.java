@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -332,7 +333,9 @@ public class DagManager extends AbstractIdleService {
           this.dagManagerThreads[i] = dagManagerThread;
           this.scheduledExecutorPool.scheduleAtFixedRate(dagManagerThread, 0, this.pollingInterval, TimeUnit.SECONDS);
         }
-        for (Dag<JobExecutionPlan> dag : dagStateStore.getDags()) {
+        List<Dag<JobExecutionPlan>> dags = dagStateStore.getDags();
+        log.info("Loading " + dags.size() + " dags from dag state store");
+        for (Dag<JobExecutionPlan> dag : dags) {
           addDag(dag, false);
         }
       } else { //Mark the DagManager inactive.
@@ -360,6 +363,7 @@ public class DagManager extends AbstractIdleService {
    */
   public static class DagManagerThread implements Runnable {
     private final Map<DagNode<JobExecutionPlan>, Dag<JobExecutionPlan>> jobToDag = new HashMap<>();
+    private static final Map<String, Integer> proxyUserToJobCount = new ConcurrentHashMap<>();
     private final Map<String, Dag<JobExecutionPlan>> dags = new HashMap<>();
     // dagToJobs holds a map of dagId to running jobs of that dag
     final Map<String, LinkedList<DagNode<JobExecutionPlan>>> dagToJobs = new HashMap<>();
@@ -787,11 +791,20 @@ public class DagManager extends AbstractIdleService {
       this.jobToDag.remove(dagNode);
       this.dagToJobs.get(dagId).remove(dagNode);
       this.dagToSLA.remove(dagId);
+
+      String proxyUser = dagNode.getValue().getJobSpec().getConfig().getString("user.to.proxy");
+      proxyUserToJobCount.put(proxyUser, proxyUserToJobCount.get(proxyUser) - 1);
+      log.info("Quota: " + proxyUser + "," + proxyUserToJobCount.get(proxyUser));
     }
 
     private void addJobState(String dagId, DagNode<JobExecutionPlan> dagNode) {
       Dag<JobExecutionPlan> dag = this.dags.get(dagId);
       this.jobToDag.put(dagNode, dag);
+
+      String proxyUser = dagNode.getValue().getJobSpec().getConfig().getString("user.to.proxy");
+      proxyUserToJobCount.put(proxyUser, proxyUserToJobCount.getOrDefault(proxyUser, 0) + 1);
+      log.info("Quota: " + proxyUser + "," + proxyUserToJobCount.get(proxyUser));
+
       if (this.dagToJobs.containsKey(dagId)) {
         this.dagToJobs.get(dagId).add(dagNode);
       } else {
