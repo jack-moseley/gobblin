@@ -22,6 +22,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.helix.HelixManager;
+
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
@@ -29,6 +32,7 @@ import com.google.common.eventbus.EventBus;
 import lombok.Builder;
 
 import org.apache.gobblin.annotation.Alpha;
+import org.apache.gobblin.runtime.util.HelixLeaderUtils;
 
 
 /**
@@ -42,6 +46,8 @@ public class FlowStatusGenerator {
 
   private final JobStatusRetriever jobStatusRetriever;
   private final EventBus eventBus;
+  private final Optional<HelixManager> helixManager;
+  private final Boolean forceLeader;
 
   /**
    * Get the flow statuses of last <code>count</code> (or fewer) executions
@@ -176,6 +182,9 @@ public class FlowStatusGenerator {
    * Send kill request for the given flow
    */
   public void killFlow(String flowGroup, String flowName, Long flowExecutionId) {
+    if (forceLeader) {
+      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+    }
     this.eventBus.post(new KillFlowEvent(flowGroup, flowName, flowExecutionId));
   }
 }

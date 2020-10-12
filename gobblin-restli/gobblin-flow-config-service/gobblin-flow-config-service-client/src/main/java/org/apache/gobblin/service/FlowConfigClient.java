@@ -104,10 +104,8 @@ public class FlowConfigClient implements Closeable {
 
     CreateIdRequest<ComplexResourceKey<FlowId, EmptyRecord>, FlowConfig> request =
         _flowconfigsRequestBuilders.create().input(flowConfig).build();
-    ResponseFuture<IdResponse<ComplexResourceKey<FlowId, EmptyRecord>>> flowConfigResponseFuture =
-        _restClient.get().sendRequest(request);
 
-    flowConfigResponseFuture.getResponse();
+    FlowClientUtils.sendRequestWithRetry(_restClient.get(), request, FlowconfigsRequestBuilders.getPrimaryResource());
   }
 
   /**
@@ -127,9 +125,7 @@ public class FlowConfigClient implements Closeable {
         _flowconfigsRequestBuilders.update().id(new ComplexResourceKey<>(flowId, new EmptyRecord()))
             .input(flowConfig).build();
 
-    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(updateRequest);
-
-    response.getResponse();
+    FlowClientUtils.sendRequestWithRetry(_restClient.get(), updateRequest, FlowconfigsRequestBuilders.getPrimaryResource());
   }
 
   /**
@@ -162,9 +158,8 @@ public class FlowConfigClient implements Closeable {
 
     DeleteRequest<FlowConfig> deleteRequest = _flowconfigsRequestBuilders.delete()
         .id(new ComplexResourceKey<>(flowId, new EmptyRecord())).build();
-    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(deleteRequest);
 
-    response.getResponse();
+    FlowClientUtils.sendRequestWithRetry(_restClient.get(), deleteRequest, FlowconfigsRequestBuilders.getPrimaryResource());
   }
 
   /**
@@ -179,9 +174,8 @@ public class FlowConfigClient implements Closeable {
 
     DeleteRequest<FlowConfig> deleteRequest = _flowconfigsRequestBuilders.delete()
         .id(new ComplexResourceKey<>(flowId, new EmptyRecord())).setHeader(DELETE_STATE_STORE_KEY, Boolean.TRUE.toString()).build();
-    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(deleteRequest);
 
-    response.getResponse();
+    FlowClientUtils.sendRequestWithRetry(_restClient.get(), deleteRequest, FlowconfigsRequestBuilders.getPrimaryResource());
   }
 
   @Override

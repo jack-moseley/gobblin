@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.gobblin.runtime.util.HelixLeaderUtils;
 import org.apache.helix.HelixManager;
 import org.apache.helix.InstanceType;
 
@@ -63,16 +64,19 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
   private FlowConfigResourceLocalHandler localHandler;
   private Optional<HelixManager> helixManager;
   private GobblinServiceJobScheduler jobScheduler;
+  private boolean forceLeader;
 
   public GobblinServiceFlowConfigResourceHandler(String serviceName, boolean flowCatalogLocalCommit,
       FlowConfigResourceLocalHandler handler,
       Optional<HelixManager> manager,
-      GobblinServiceJobScheduler jobScheduler) {
+      GobblinServiceJobScheduler jobScheduler,
+      boolean forceLeader) {
     this.flowCatalogLocalCommit = flowCatalogLocalCommit;
     this.serviceName = serviceName;
     this.localHandler = handler;
     this.helixManager = manager;
     this.jobScheduler = jobScheduler;
+    this.forceLeader = forceLeader;
   }
 
   @Override
@@ -116,6 +120,10 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
     }
 
     checkHelixConnection(ServiceConfigKeys.HELIX_FLOWSPEC_ADD, flowName, flowGroup);
+
+    if (forceLeader) {
+      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+    }
 
     try {
       if (!jobScheduler.isActive() && helixManager.isPresent()) {
@@ -166,6 +174,10 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
     }
 
     checkHelixConnection(ServiceConfigKeys.HELIX_FLOWSPEC_UPDATE, flowName, flowGroup);
+
+    if (forceLeader) {
+      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+    }
 
     try {
       if (!jobScheduler.isActive() && helixManager.isPresent()) {
@@ -222,6 +234,10 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
     String flowGroup = flowId.getFlowGroup();
 
     checkHelixConnection(ServiceConfigKeys.HELIX_FLOWSPEC_REMOVE, flowName, flowGroup);
+
+    if (forceLeader) {
+      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+    }
 
     try {
       if (!jobScheduler.isActive() && helixManager.isPresent()) {

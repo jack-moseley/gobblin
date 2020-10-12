@@ -115,10 +115,9 @@ public class FlowConfigV2Client implements Closeable {
 
     CreateIdEntityRequest<ComplexResourceKey<FlowId, FlowStatusId>, FlowConfig> request =
         _flowconfigsV2RequestBuilders.createAndGet().input(flowConfig).build();
-    ResponseFuture<IdEntityResponse<ComplexResourceKey<FlowId, FlowStatusId>, FlowConfig>> flowConfigResponseFuture =
-        _restClient.get().sendRequest(request);
+    Response<?> response = FlowClientUtils.sendRequestWithRetry(_restClient.get(), request, FlowconfigsV2RequestBuilders.getPrimaryResource());
 
-    return createFlowStatusId(flowConfigResponseFuture.getResponse().getLocation().toString());
+    return createFlowStatusId(response.getLocation().toString());
   }
 
   private FlowStatusId createFlowStatusId(String locationHeader) {
@@ -156,9 +155,7 @@ public class FlowConfigV2Client implements Closeable {
         _flowconfigsV2RequestBuilders.update().id(new ComplexResourceKey<>(flowId, new FlowStatusId()))
             .input(flowConfig).build();
 
-    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(updateRequest);
-
-    response.getResponse();
+    FlowClientUtils.sendRequestWithRetry(_restClient.get(), updateRequest, FlowconfigsV2RequestBuilders.getPrimaryResource());
   }
 
   /**
@@ -177,7 +174,7 @@ public class FlowConfigV2Client implements Closeable {
 
     ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(partialUpdateRequest);
 
-    response.getResponse();
+    FlowClientUtils.sendRequestWithRetry(_restClient.get(), partialUpdateRequest, FlowconfigsV2RequestBuilders.getPrimaryResource());
   }
 
   /**
@@ -242,7 +239,7 @@ public class FlowConfigV2Client implements Closeable {
         .id(new ComplexResourceKey<>(flowId, new FlowStatusId())).build();
     ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(deleteRequest);
 
-    response.getResponse();
+    FlowClientUtils.sendRequestWithRetry(_restClient.get(), deleteRequest, FlowconfigsV2RequestBuilders.getPrimaryResource());
   }
 
   /**

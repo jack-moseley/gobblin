@@ -66,6 +66,7 @@ dependencies {
   compile externalDependency.gson
   compile externalDependency.guava
   compile externalDependency.guice
+  compile externalDependency.helix
   compile externalDependency.httpclient
   compile externalDependency.httpcore
   compile externalDependency.jacksonCore
