@@ -172,8 +172,6 @@ public class FlowConfigV2Client implements Closeable {
         _flowconfigsV2RequestBuilders.partialUpdate().id(new ComplexResourceKey<>(flowId, new FlowStatusId()))
             .input(flowConfigPatch).build();
 
-    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(partialUpdateRequest);
-
     FlowClientUtils.sendRequestWithRetry(_restClient.get(), partialUpdateRequest, FlowconfigsV2RequestBuilders.getPrimaryResource());
   }
 
@@ -237,7 +235,6 @@ public class FlowConfigV2Client implements Closeable {
 
     DeleteRequest<FlowConfig> deleteRequest = _flowconfigsV2RequestBuilders.delete()
         .id(new ComplexResourceKey<>(flowId, new FlowStatusId())).build();
-    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(deleteRequest);
 
     FlowClientUtils.sendRequestWithRetry(_restClient.get(), deleteRequest, FlowconfigsV2RequestBuilders.getPrimaryResource());
   }

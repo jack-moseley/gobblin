@@ -17,7 +17,10 @@
 
 package org.apache.gobblin.service;
 
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 
 import org.apache.helix.HelixManager;
@@ -49,7 +52,12 @@ public class HelixLeaderUtils {
     if (!helixInstanceName.contains(HELIX_INSTANCE_NAME_SEPARATOR)) {
       return null;
     } else {
-      return helixInstanceName.substring(helixInstanceName.indexOf(HELIX_INSTANCE_NAME_SEPARATOR) + 1);
+      String url = helixInstanceName.substring(helixInstanceName.indexOf(HELIX_INSTANCE_NAME_SEPARATOR) + 1);
+      try {
+        return URLDecoder.decode(url, "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        throw new RuntimeException("Failed to decode URL from helix instance name", e);
+      }
     }
   }
 
@@ -84,11 +92,12 @@ public class HelixLeaderUtils {
 
     String url = "";
     try {
-      url = HELIX_INSTANCE_NAME_SEPARATOR + ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_URL_PREFIX, "https://")
+      url = ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_URL_PREFIX, "https://")
           + InetAddress.getLocalHost().getHostName() + ":" + ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_PORT, "")
           + "/" + ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_NAME, "");
-    } catch (UnknownHostException e) {
-      log.warn("Failed to append URL to helix instance name", e);
+      url = HELIX_INSTANCE_NAME_SEPARATOR + URLEncoder.encode(url, "UTF-8");
+    } catch (UnknownHostException | UnsupportedEncodingException e) {
+      log.warn("Failed to construct helix instance name", e);
     }
 
     return helixInstanceName + url;
