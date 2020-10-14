@@ -115,8 +115,8 @@ public class ServiceConfigKeys {
   public static final String GOBBLIN_SERVICE_LOG4J_CONFIGURATION_FILE = "log4j-service.properties";
   // GAAS Listerning Port
   public static final String SERVICE_PORT = GOBBLIN_SERVICE_PREFIX + "port";
-
   public static final String SERVICE_NAME = GOBBLIN_SERVICE_PREFIX + "serviceName";
+  public static final String SERVICE_URL_PREFIX = GOBBLIN_SERVICE_PREFIX + "serviceUrlPrefix";
 
   // Prefix for config to ServiceBasedAppLauncher that will only be used by GaaS and not orchestrated jobs
   public static final String GOBBLIN_SERVICE_APP_LAUNCHER_PREFIX = "gobblinServiceAppLauncher";
@@ -127,6 +127,6 @@ public class ServiceConfigKeys {
 
   public static final String LEADER_URL = "leaderUrl";
 
-  public static final String FORCE_LEADER_KEY = GOBBLIN_SERVICE_PREFIX + "forceLeader";
+  public static final String FORCE_LEADER = GOBBLIN_SERVICE_PREFIX + "forceLeader";
   public static final boolean DEFAULT_FORCE_LEADER = false;
 }

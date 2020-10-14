@@ -104,8 +104,10 @@ public class FlowConfigClient implements Closeable {
 
     CreateIdRequest<ComplexResourceKey<FlowId, EmptyRecord>, FlowConfig> request =
         _flowconfigsRequestBuilders.create().input(flowConfig).build();
+    ResponseFuture<IdResponse<ComplexResourceKey<FlowId, EmptyRecord>>> flowConfigResponseFuture =
+        _restClient.get().sendRequest(request);
 
-    FlowClientUtils.sendRequestWithRetry(_restClient.get(), request, FlowconfigsRequestBuilders.getPrimaryResource());
+    flowConfigResponseFuture.getResponse();
   }
 
   /**
@@ -125,7 +127,9 @@ public class FlowConfigClient implements Closeable {
         _flowconfigsRequestBuilders.update().id(new ComplexResourceKey<>(flowId, new EmptyRecord()))
             .input(flowConfig).build();
 
-    FlowClientUtils.sendRequestWithRetry(_restClient.get(), updateRequest, FlowconfigsRequestBuilders.getPrimaryResource());
+    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(updateRequest);
+
+    response.getResponse();
   }
 
   /**
@@ -158,8 +162,9 @@ public class FlowConfigClient implements Closeable {
 
     DeleteRequest<FlowConfig> deleteRequest = _flowconfigsRequestBuilders.delete()
         .id(new ComplexResourceKey<>(flowId, new EmptyRecord())).build();
+    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(deleteRequest);
 
-    FlowClientUtils.sendRequestWithRetry(_restClient.get(), deleteRequest, FlowconfigsRequestBuilders.getPrimaryResource());
+    response.getResponse();
   }
 
   /**
@@ -174,8 +179,9 @@ public class FlowConfigClient implements Closeable {
 
     DeleteRequest<FlowConfig> deleteRequest = _flowconfigsRequestBuilders.delete()
         .id(new ComplexResourceKey<>(flowId, new EmptyRecord())).setHeader(DELETE_STATE_STORE_KEY, Boolean.TRUE.toString()).build();
+    ResponseFuture<EmptyRecord> response = _restClient.get().sendRequest(deleteRequest);
 
-    FlowClientUtils.sendRequestWithRetry(_restClient.get(), deleteRequest, FlowconfigsRequestBuilders.getPrimaryResource());
+    response.getResponse();
   }
 
   @Override

@@ -1,3 +1,4 @@
 dependencies {
   compile project(':gobblin-runtime')
+  compile externalDependency.helix
 }

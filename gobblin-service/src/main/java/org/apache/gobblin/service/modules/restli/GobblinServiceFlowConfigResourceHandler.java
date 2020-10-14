@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.gobblin.runtime.util.HelixLeaderUtils;
+import org.apache.gobblin.service.HelixLeaderUtils;
 import org.apache.helix.HelixManager;
 import org.apache.helix.InstanceType;
 

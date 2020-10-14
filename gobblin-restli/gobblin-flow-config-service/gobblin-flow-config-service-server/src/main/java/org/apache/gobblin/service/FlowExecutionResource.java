@@ -22,10 +22,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.helix.HelixManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.linkedin.data.template.SetMode;
 import com.linkedin.restli.common.ComplexResourceKey;
@@ -43,6 +45,7 @@ import com.linkedin.restli.server.resources.ComplexKeyResourceTemplate;
 
 import org.apache.gobblin.service.monitoring.FlowStatusGenerator;
 import org.apache.gobblin.service.monitoring.JobStatusRetriever;
+import org.apache.gobblin.service.monitoring.KillFlowEvent;
 
 
 /**
@@ -52,10 +55,19 @@ import org.apache.gobblin.service.monitoring.JobStatusRetriever;
 public class FlowExecutionResource extends ComplexKeyResourceTemplate<FlowStatusId, EmptyRecord, FlowExecution> {
   private static final Logger LOG = LoggerFactory.getLogger(FlowExecutionResource.class);
   public static final String FLOW_STATUS_GENERATOR_INJECT_NAME = "FlowStatusGenerator";
+  public static final String EVENTBUS_INJECT_NAME = "EventBus";
+  public static final String HELIX_MANAGER_INJECT_NAME = "HelixManager";
+  public static final String FORCE_LEADER_INJECT_NAME = "ForceLeader";
   public static final String MESSAGE_SEPARATOR = ", ";
 
   @Inject @javax.inject.Inject @javax.inject.Named(FLOW_STATUS_GENERATOR_INJECT_NAME)
   FlowStatusGenerator _flowStatusGenerator;
+  @Inject @javax.inject.Inject @javax.inject.Named(EVENTBUS_INJECT_NAME)
+  EventBus eventBus;
+  @Inject @javax.inject.Inject @javax.inject.Named(HELIX_MANAGER_INJECT_NAME)
+  com.google.common.base.Optional<HelixManager> helixManager;
+  @Inject @javax.inject.Inject @javax.inject.Named(FORCE_LEADER_INJECT_NAME)
+  Boolean forceLeader;
 
   public FlowExecutionResource() {}
 
@@ -97,7 +109,10 @@ public class FlowExecutionResource extends ComplexKeyResourceTemplate<FlowStatus
     String flowGroup = key.getKey().getFlowGroup();
     String flowName = key.getKey().getFlowName();
     Long flowExecutionId = key.getKey().getFlowExecutionId();
-    _flowStatusGenerator.killFlow(flowGroup, flowName, flowExecutionId);
+    if (forceLeader) {
+      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+    }
+    this.eventBus.post(new KillFlowEvent(flowGroup, flowName, flowExecutionId));
     return new UpdateResponse(HttpStatus.S_200_OK);
   }
 

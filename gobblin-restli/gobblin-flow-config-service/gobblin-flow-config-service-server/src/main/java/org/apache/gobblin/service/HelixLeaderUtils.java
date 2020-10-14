@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.gobblin.runtime.util;
+package org.apache.gobblin.service;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -33,7 +33,6 @@ import com.typesafe.config.Config;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.gobblin.service.ServiceConfigKeys;
 import org.apache.gobblin.util.ConfigUtils;
 
 
@@ -68,7 +67,7 @@ public class HelixLeaderUtils {
     if (helixManager.isPresent() && !helixManager.get().isLeader()) {
       String leaderUrl = getLeaderUrl(helixManager.get());
       if (leaderUrl == null) {
-        return;
+        throw new RuntimeException("Request sent to slave node but could not get leader node URL");
       }
       RestLiServiceException exception = new RestLiServiceException(HttpStatus.S_400_BAD_REQUEST, "Request must be sent to leader node at URL " + leaderUrl);
       exception.setErrorDetails(new DataMap(ImmutableMap.of(ServiceConfigKeys.LEADER_URL, leaderUrl)));
@@ -85,7 +84,8 @@ public class HelixLeaderUtils {
 
     String url = "";
     try {
-      url = HELIX_INSTANCE_NAME_SEPARATOR + "https://" + InetAddress.getLocalHost().getHostName() + ":" + ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_PORT, "")
+      url = HELIX_INSTANCE_NAME_SEPARATOR + ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_URL_PREFIX, "https://")
+          + InetAddress.getLocalHost().getHostName() + ":" + ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_PORT, "")
           + "/" + ConfigUtils.getString(config, ServiceConfigKeys.SERVICE_NAME, "");
     } catch (UnknownHostException e) {
       log.warn("Failed to append URL to helix instance name", e);

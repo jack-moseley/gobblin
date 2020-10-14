@@ -77,7 +77,7 @@ import org.apache.gobblin.runtime.app.ApplicationLauncher;
 import org.apache.gobblin.runtime.app.ServiceBasedAppLauncher;
 import org.apache.gobblin.runtime.spec_catalog.FlowCatalog;
 import org.apache.gobblin.runtime.spec_catalog.TopologyCatalog;
-import org.apache.gobblin.runtime.util.HelixLeaderUtils;
+import org.apache.gobblin.service.HelixLeaderUtils;
 import org.apache.gobblin.scheduler.SchedulerService;
 import org.apache.gobblin.service.FlowConfig;
 import org.apache.gobblin.service.FlowConfigClient;
@@ -276,14 +276,14 @@ public class GobblinServiceManager implements ApplicationLauncher, StandardMetri
         new FlowConfigResourceLocalHandler(this.flowCatalog),
         this.helixManager,
         this.scheduler,
-        ConfigUtils.getBoolean(this.config, ServiceConfigKeys.FORCE_LEADER_KEY, ServiceConfigKeys.DEFAULT_FORCE_LEADER));
+        ConfigUtils.getBoolean(this.config, ServiceConfigKeys.FORCE_LEADER, ServiceConfigKeys.DEFAULT_FORCE_LEADER));
 
     this.v2ResourceHandler = new GobblinServiceFlowConfigResourceHandler(serviceName,
         this.flowCatalogLocalCommit,
         new FlowConfigV2ResourceLocalHandler(this.flowCatalog),
         this.helixManager,
         this.scheduler,
-        ConfigUtils.getBoolean(this.config, ServiceConfigKeys.FORCE_LEADER_KEY, ServiceConfigKeys.DEFAULT_FORCE_LEADER));
+        ConfigUtils.getBoolean(this.config, ServiceConfigKeys.FORCE_LEADER, ServiceConfigKeys.DEFAULT_FORCE_LEADER));
 
     this.isRestLIServerEnabled = ConfigUtils.getBoolean(config,
         ServiceConfigKeys.GOBBLIN_SERVICE_RESTLI_SERVER_ENABLED_KEY, true);
@@ -361,7 +361,7 @@ public class GobblinServiceManager implements ApplicationLauncher, StandardMetri
    */
   private HelixManager buildHelixManager(Config config, String zkConnectionString) {
     String helixClusterName = config.getString(ServiceConfigKeys.HELIX_CLUSTER_NAME_KEY);
-    String helixInstanceName = HelixLeaderUtils.buildHelixInstanceName(config);
+    String helixInstanceName = HelixLeaderUtils.buildHelixInstanceName(config, GobblinServiceManager.class.getSimpleName());
 
     LOGGER.info("Creating Helix cluster if not already present [overwrite = false]: " + zkConnectionString);
     HelixUtils.createGobblinHelixCluster(zkConnectionString, helixClusterName, false);
