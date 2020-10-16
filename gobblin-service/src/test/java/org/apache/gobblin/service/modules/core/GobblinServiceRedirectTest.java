@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import com.linkedin.data.template.StringMap;
 import com.linkedin.r2.transport.http.client.HttpClientFactory;
 import com.linkedin.restli.client.RestLiResponseException;
@@ -61,19 +62,17 @@ public class GobblinServiceRedirectTest {
   private static final String QUARTZ_INSTANCE_NAME = "org.quartz.scheduler.instanceName";
   private static final String QUARTZ_THREAD_POOL_COUNT = "org.quartz.threadPool.threadCount";
 
-  private static final String COMMON_SPEC_STORE_PARENT_DIR = "/tmp/serviceCoreCommon/";
+  private static final File BASE_PATH1 = Files.createTempDir();
+  private static final String NODE_1_SERVICE_WORK_DIR = new Path(BASE_PATH1.getAbsolutePath(), "serviceWorkDirNode1").toString();
+  private static final String NODE_1_TOPOLOGY_SPEC_STORE_DIR = new Path(BASE_PATH1.getAbsolutePath(), "topologyTestSpecStoreNode1").toString();
+  private static final String NODE_1_FLOW_SPEC_STORE_DIR = new Path(BASE_PATH1.getAbsolutePath(), "flowTestSpecStore").toString();
+  private static final String NODE_1_JOB_STATUS_STATE_STORE_DIR = new Path(BASE_PATH1.getAbsolutePath(), "fsJobStatusRetriever").toString();
 
-  private static final String NODE_1_SERVICE_WORK_DIR = "/tmp/serviceWorkDirNode1/";
-  private static final String NODE_1_SPEC_STORE_PARENT_DIR = "/tmp/serviceCoreNode1/";
-  private static final String NODE_1_TOPOLOGY_SPEC_STORE_DIR = "/tmp/serviceCoreNode1/topologyTestSpecStoreNode1";
-  private static final String NODE_1_FLOW_SPEC_STORE_DIR = "/tmp/serviceCoreCommon/flowTestSpecStore";
-  private static final String NODE_1_JOB_STATUS_STATE_STORE_DIR = "/tmp/serviceCoreNode1/fsJobStatusRetriever";
-
-  private static final String NODE_2_SERVICE_WORK_DIR = "/tmp/serviceWorkDirNode2/";
-  private static final String NODE_2_SPEC_STORE_PARENT_DIR = "/tmp/serviceCoreNode2/";
-  private static final String NODE_2_TOPOLOGY_SPEC_STORE_DIR = "/tmp/serviceCoreNode2/topologyTestSpecStoreNode2";
-  private static final String NODE_2_FLOW_SPEC_STORE_DIR = "/tmp/serviceCoreCommon/flowTestSpecStore";
-  private static final String NODE_2_JOB_STATUS_STATE_STORE_DIR = "/tmp/serviceCoreNode2/fsJobStatusRetriever";
+  private static final File BASE_PATH2 = Files.createTempDir();
+  private static final String NODE_2_SERVICE_WORK_DIR = new Path(BASE_PATH2.getAbsolutePath(), "serviceWorkDirNode2").toString();
+  private static final String NODE_2_TOPOLOGY_SPEC_STORE_DIR = new Path(BASE_PATH2.getAbsolutePath(), "topologyTestSpecStoreNode2").toString();
+  private static final String NODE_2_FLOW_SPEC_STORE_DIR = new Path(BASE_PATH2.getAbsolutePath(), "flowTestSpecStore").toString();
+  private static final String NODE_2_JOB_STATUS_STATE_STORE_DIR = new Path(BASE_PATH2.getAbsolutePath(), "fsJobStatusRetriever").toString();
 
   private static final String TEST_HELIX_CLUSTER_NAME = "testGobblinServiceCluster";
 
@@ -109,16 +108,8 @@ public class GobblinServiceRedirectTest {
 
   @BeforeClass
   public void setup() throws Exception {
-    // Clean up common Flow Spec Dir
-    cleanUpDir(COMMON_SPEC_STORE_PARENT_DIR);
-
-    // Clean up work dir for Node 1
-    cleanUpDir(NODE_1_SERVICE_WORK_DIR);
-    cleanUpDir(NODE_1_SPEC_STORE_PARENT_DIR);
-
-    // Clean up work dir for Node 2
-    cleanUpDir(NODE_2_SERVICE_WORK_DIR);
-    cleanUpDir(NODE_2_SPEC_STORE_PARENT_DIR);
+    BASE_PATH1.deleteOnExit();
+    BASE_PATH2.deleteOnExit();
 
     // Use a random ZK port
     this.testingZKServer = new TestingServer(-1);
@@ -192,13 +183,6 @@ public class GobblinServiceRedirectTest {
         this.node2GobblinServiceManager.restliServer.getPort()), transportClientProperties);
   }
 
-  private void cleanUpDir(String dir) throws Exception {
-    File specStoreDir = new File(dir);
-    if (specStoreDir.exists()) {
-      FileUtils.deleteDirectory(specStoreDir);
-    }
-  }
-
   @AfterClass
   public void cleanUp() throws Exception {
     // Shutdown Node 1
@@ -223,32 +207,6 @@ public class GobblinServiceRedirectTest {
     } catch (Exception e) {
       logger.warn("Could not cleanly stop Testing Zookeeper", e);
     }
-
-    // Cleanup Node 1
-    try {
-      cleanUpDir(NODE_1_SERVICE_WORK_DIR);
-    } catch (Exception e) {
-      logger.warn("Could not completely cleanup Node 1 Work Dir");
-    }
-    try {
-      cleanUpDir(NODE_1_SPEC_STORE_PARENT_DIR);
-    } catch (Exception e) {
-      logger.warn("Could not completely cleanup Node 1 Spec Store Parent Dir");
-    }
-
-    // Cleanup Node 2
-    try {
-      cleanUpDir(NODE_2_SERVICE_WORK_DIR);
-    } catch (Exception e) {
-      logger.warn("Could not completely cleanup Node 2 Work Dir");
-    }
-    try {
-      cleanUpDir(NODE_2_SPEC_STORE_PARENT_DIR);
-    } catch (Exception e) {
-      logger.warn("Could not completely cleanup Node 2 Spec Store Parent Dir");
-    }
-
-    cleanUpDir(COMMON_SPEC_STORE_PARENT_DIR);
   }
 
   @Test

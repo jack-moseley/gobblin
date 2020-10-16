@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.gobblin.service.HelixLeaderUtils;
 import org.apache.helix.HelixManager;
 import org.apache.helix.InstanceType;
 
@@ -122,7 +121,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
     checkHelixConnection(ServiceConfigKeys.HELIX_FLOWSPEC_ADD, flowName, flowGroup);
 
     if (forceLeader) {
-      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+      HelixUtils.throwErrorIfNotLeader(helixManager);
     }
 
     try {
@@ -176,7 +175,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
     checkHelixConnection(ServiceConfigKeys.HELIX_FLOWSPEC_UPDATE, flowName, flowGroup);
 
     if (forceLeader) {
-      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+      HelixUtils.throwErrorIfNotLeader(helixManager);
     }
 
     try {
@@ -236,7 +235,7 @@ public class GobblinServiceFlowConfigResourceHandler implements FlowConfigsResou
     checkHelixConnection(ServiceConfigKeys.HELIX_FLOWSPEC_REMOVE, flowName, flowGroup);
 
     if (forceLeader) {
-      HelixLeaderUtils.throwErrorIfNotLeader(helixManager);
+      HelixUtils.throwErrorIfNotLeader(helixManager);
     }
 
     try {
