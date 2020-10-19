@@ -76,13 +76,13 @@ public class GobblinServiceRedirectTest {
 
   private static final String TEST_HELIX_CLUSTER_NAME = "testGobblinServiceCluster";
 
-  private static final String TEST_GROUP_NAME_1 = "testGroup1";
-  private static final String TEST_FLOW_NAME_1 = "testFlow1";
+  private static final String TEST_GROUP_NAME_1 = "testRedirectGroup1";
+  private static final String TEST_FLOW_NAME_1 = "testRedirectFlow1";
   private static final String TEST_SCHEDULE_1 = "0 1/0 * ? * *";
   private static final String TEST_TEMPLATE_URI_1 = "FS:///templates/test.template";
 
-  private static final String TEST_GROUP_NAME_2 = "testGroup2";
-  private static final String TEST_FLOW_NAME_2 = "testFlow2";
+  private static final String TEST_GROUP_NAME_2 = "testRedirectGroup2";
+  private static final String TEST_FLOW_NAME_2 = "testRedirectFlow2";
   private static final String TEST_SCHEDULE_2 = "0 1/0 * ? * *";
   private static final String TEST_TEMPLATE_URI_2 = "FS:///templates/test.template";
 
@@ -149,7 +149,7 @@ public class GobblinServiceRedirectTest {
     node1ServiceCoreProperties.put(ConfigurationKeys.TOPOLOGYSPEC_STORE_DIR_KEY, NODE_1_TOPOLOGY_SPEC_STORE_DIR);
     node1ServiceCoreProperties.put(FlowCatalog.FLOWSPEC_STORE_DIR_KEY, NODE_1_FLOW_SPEC_STORE_DIR);
     node1ServiceCoreProperties.put(FsJobStatusRetriever.CONF_PREFIX + "." + ConfigurationKeys.STATE_STORE_ROOT_DIR_KEY, NODE_1_JOB_STATUS_STATE_STORE_DIR);
-    node1ServiceCoreProperties.put(QUARTZ_INSTANCE_NAME, "QuartzScheduler1");
+    node1ServiceCoreProperties.put(QUARTZ_INSTANCE_NAME, "RedirectQuartzScheduler1");
     node1ServiceCoreProperties.put(QUARTZ_THREAD_POOL_COUNT, 3);
     node1ServiceCoreProperties.put(ServiceConfigKeys.SERVICE_PORT, PORT1);
 
@@ -158,7 +158,7 @@ public class GobblinServiceRedirectTest {
     node2ServiceCoreProperties.put(ConfigurationKeys.TOPOLOGYSPEC_STORE_DIR_KEY, NODE_2_TOPOLOGY_SPEC_STORE_DIR);
     node2ServiceCoreProperties.put(FlowCatalog.FLOWSPEC_STORE_DIR_KEY, NODE_2_FLOW_SPEC_STORE_DIR);
     node2ServiceCoreProperties.put(FsJobStatusRetriever.CONF_PREFIX + "." + ConfigurationKeys.STATE_STORE_ROOT_DIR_KEY, NODE_2_JOB_STATUS_STATE_STORE_DIR);
-    node2ServiceCoreProperties.put(QUARTZ_INSTANCE_NAME, "QuartzScheduler2");
+    node2ServiceCoreProperties.put(QUARTZ_INSTANCE_NAME, "RedirectQuartzScheduler2");
     node2ServiceCoreProperties.put(QUARTZ_THREAD_POOL_COUNT, 3);
     node2ServiceCoreProperties.put(ServiceConfigKeys.SERVICE_PORT, PORT2);
 

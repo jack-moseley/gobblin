@@ -53,7 +53,7 @@ import org.apache.gobblin.util.ConfigUtils;
 @Alpha
 @Slf4j
 public class HelixUtils {
-  public static String HELIX_INSTANCE_NAME_SEPARATOR = "@";
+  public static final String HELIX_INSTANCE_NAME_SEPARATOR = "@";
 
   /***
    * Build a Helix Manager (Helix Controller instance).
