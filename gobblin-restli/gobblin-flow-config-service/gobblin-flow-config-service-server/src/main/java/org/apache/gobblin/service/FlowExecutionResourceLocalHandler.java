@@ -83,7 +83,7 @@ public class FlowExecutionResourceLocalHandler implements FlowExecutionResourceH
 
   @Override
   public UpdateResponse delete(ComplexResourceKey<FlowStatusId, EmptyRecord> key) {
-    throw new UnsupportedOperationException("asdf");
+    throw new UnsupportedOperationException("Delete should be handled in GobblinServiceFlowConfigResourceHandler");
   }
 
   public static org.apache.gobblin.service.monitoring.FlowStatus getFlowStatusFromGenerator(ComplexResourceKey<FlowStatusId, EmptyRecord> key,

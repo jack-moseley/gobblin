@@ -74,7 +74,7 @@ public class GobblinServiceRedirectTest {
   private static final String NODE_2_FLOW_SPEC_STORE_DIR = new Path(BASE_PATH2.getAbsolutePath(), "flowTestSpecStore").toString();
   private static final String NODE_2_JOB_STATUS_STATE_STORE_DIR = new Path(BASE_PATH2.getAbsolutePath(), "fsJobStatusRetriever").toString();
 
-  private static final String TEST_HELIX_CLUSTER_NAME = "testGobblinServiceCluster";
+  private static final String TEST_HELIX_CLUSTER_NAME = "testRedirectGobblinServiceCluster";
 
   private static final String TEST_GROUP_NAME_1 = "testRedirectGroup1";
   private static final String TEST_FLOW_NAME_1 = "testRedirectFlow1";
@@ -86,7 +86,7 @@ public class GobblinServiceRedirectTest {
   private static final String TEST_SCHEDULE_2 = "0 1/0 * ? * *";
   private static final String TEST_TEMPLATE_URI_2 = "FS:///templates/test.template";
 
-  private static final String TEST_GOBBLIN_EXECUTOR_NAME = "testGobblinExecutor";
+  private static final String TEST_GOBBLIN_EXECUTOR_NAME = "testRedirectGobblinExecutor";
   private static final String TEST_SOURCE_NAME = "testSource";
   private static final String TEST_SINK_NAME = "testSink";
 
@@ -163,12 +163,12 @@ public class GobblinServiceRedirectTest {
     node2ServiceCoreProperties.put(ServiceConfigKeys.SERVICE_PORT, PORT2);
 
     // Start Node 1
-    this.node1GobblinServiceManager = new GobblinServiceManager("CoreService1", "1",
+    this.node1GobblinServiceManager = new GobblinServiceManager("RedirectCoreService1", "1",
         ConfigUtils.propertiesToConfig(node1ServiceCoreProperties), Optional.of(new Path(NODE_1_SERVICE_WORK_DIR)));
     this.node1GobblinServiceManager.start();
 
     // Start Node 2
-    this.node2GobblinServiceManager = new GobblinServiceManager("CoreService2", "2",
+    this.node2GobblinServiceManager = new GobblinServiceManager("RedirectCoreService2", "2",
         ConfigUtils.propertiesToConfig(node2ServiceCoreProperties), Optional.of(new Path(NODE_2_SERVICE_WORK_DIR)));
     this.node2GobblinServiceManager.start();
 
