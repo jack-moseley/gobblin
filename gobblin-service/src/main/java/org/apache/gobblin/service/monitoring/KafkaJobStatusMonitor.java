@@ -134,6 +134,8 @@ public abstract class KafkaJobStatusMonitor extends HighLevelConsumer<byte[], by
       if (jobStatus != null) {
         try(Timer.Context context = getMetricContext().timer(GET_AND_SET_JOB_STATUS).time()) {
           addJobStatusToStateStore(jobStatus, this.stateStore);
+        } catch (IOException ioe) {
+          throw new RuntimeException("Failed to add job status to state store", ioe);
         }
       }
     } catch (IOException ioe) {
