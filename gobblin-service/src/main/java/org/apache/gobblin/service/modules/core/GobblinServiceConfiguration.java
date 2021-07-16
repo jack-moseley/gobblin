@@ -71,6 +71,9 @@ public class GobblinServiceConfiguration {
   private final boolean flowCatalogLocalCommit;
 
   @Getter
+  private final boolean isD2DelayedStart;
+
+  @Getter
   private final Config innerConfig;
 
   @Getter
@@ -111,5 +114,6 @@ public class GobblinServiceConfiguration {
         ConfigUtils.getBoolean(config, ServiceConfigKeys.GOBBLIN_SERVICE_RESTLI_SERVER_ENABLED_KEY, true);
     this.isTopologySpecFactoryEnabled =
         ConfigUtils.getBoolean(config, ServiceConfigKeys.GOBBLIN_SERVICE_TOPOLOGY_SPEC_FACTORY_ENABLED_KEY, true);
+    this.isD2DelayedStart = ConfigUtils.getBoolean(config, ServiceConfigKeys.GOBBLIN_SERVICE_DELAYED_START, false);
   }
 }
